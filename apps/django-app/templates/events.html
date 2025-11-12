@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Event Log</h3>
+<table class="table table-sm">
+  <thead><tr><th>Waktu</th><th>Event</th><th>Key</th><th>Version</th><th>ETag</th></tr></thead>
+  <tbody>
+  {% for e in logs %}
+    <tr>
+      <td>{{ e.occurred_at }}</td>
+      <td>{{ e.event_type }}</td>
+      <td style="max-width:320px; overflow-wrap:anywhere;">{{ e.object_key }}</td>
+      <td>{{ e.version_id }}</td>
+      <td>{{ e.etag }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

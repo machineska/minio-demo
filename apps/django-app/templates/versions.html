@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Versi: {{ key }}</h3>
+<table class="table table-bordered">
+  <thead><tr><th>Version ID</th><th>Terbaru</th><th>Ukuran</th><th>Modifikasi</th><th>Aksi</th></tr></thead>
+  <tbody>
+  {% for v in versions %}
+    <tr>
+      <td style="max-width:320px; overflow-wrap:anywhere;">{{ v.version_id }}</td>
+      <td>{% if v.is_latest %}Ya{% else %}Tidak{% endif %}</td>
+      <td>{{ v.size }}</td>
+      <td>{{ v.last_modified }}</td>
+      <td>
+        {% if not v.is_latest %}
+        <a class="btn btn-sm btn-success" href="/restore/{{ v.key }}/{{ v.version_id }}">Restore ke terbaru</a>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

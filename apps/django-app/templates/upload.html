@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Upload ke MINIO</h3>
+<form action="/upload" method="post" enctype="multipart/form-data">
+  
+  <input type="file" name="file" class="form-control" required>
+  <button class="btn btn-success mt-3" type="submit">Unggah</button>
+</form>
+{% endblock %}

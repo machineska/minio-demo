@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Daftar Objek</h3>
+<table class="table table-striped">
+  <thead><tr><th>Nama</th><th>Ukuran</th><th>Modifikasi</th><th>Aksi</th></tr></thead>
+  <tbody>
+  {% for o in objects %}
+    <tr>
+      <td>{{ o.object_name }}</td>
+      <td>{{ o.size }}</td>
+      <td>{{ o.last_modified }}</td>
+      <td>
+        <button class="btn btn-sm btn-primary" onclick="presign('{{ o.object_name }}')">Download</button>
+        <a class="btn btn-sm btn-warning" href="/versions/{{ o.object_name }}">Versi</a>
+        <a class="btn btn-sm btn-danger" href="/delete/{{ o.object_name }}">Hapus</a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+
+<script>
+async function presign(key){
+  const res = await fetch('/presign/' + encodeURIComponent(key));
+  const data = await res.json();
+  window.open(data.url, '_blank');
+}
+</script>
+{% endblock %}

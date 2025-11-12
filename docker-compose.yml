@@ -1,0 +1,105 @@
+services:
+  minio1:
+    image: minio/minio:latest
+    container_name: minio1
+    command: server --console-address ":9001" http://minio1/data http://minio2/data http://minio3/data http://minio4/data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio1-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - minio-net
+
+  minio2:
+    image: minio/minio:latest
+    container_name: minio2
+    command: server --console-address ":9001" http://minio1/data http://minio2/data http://minio3/data http://minio4/data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio2-data:/data
+    networks:
+      - minio-net
+
+  minio3:
+    image: minio/minio:latest
+    container_name: minio3
+    command: server --console-address ":9001" http://minio1/data http://minio2/data http://minio3/data http://minio4/data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio3-data:/data
+    networks:
+      - minio-net
+
+  minio4:
+    image: minio/minio:latest
+    container_name: minio4
+    command: server --console-address ":9001" http://minio1/data http://minio2/data http://minio3/data http://minio4/data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio4-data:/data
+    networks:
+      - minio-net
+
+  mc-init:
+    image: minio/mc:latest
+    container_name: mc-init
+    depends_on:
+      - minio1
+      - minio2
+      - minio3
+      - minio4
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+    entrypoint: ["/bin/sh","-c"]
+    command: >
+      until mc alias set local http://minio1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"; do echo waiting for minio; sleep 2; done;
+      mc mb --ignore-existing local/"$MINIO_BUCKET";
+      mc version enable local/"$MINIO_BUCKET";
+      mc event add local/"$MINIO_BUCKET" arn:minio:sqs::1:webhook --event put,remove --prefix "" --suffix "" --queue "http://django-app:8000/events/webhook";
+      echo init done;
+    networks:
+      - minio-net
+
+  django-app:
+    build: ./apps/django-app
+    container_name: django-app
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - MINIO_ENDPOINT=http://minio1:9000
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+      - MINIO_REGION=${MINIO_REGION}
+      - PRESIGN_TTL=${PRESIGN_TTL}
+    depends_on:
+      - minio1
+      - minio2
+      - minio3
+      - minio4
+      - mc-init
+    ports:
+      - "8000:8000"
+    networks:
+      - minio-net
+
+networks:
+  minio-net:
+    driver: bridge
+
+volumes:
+  minio1-data:
+  minio2-data:
+  minio3-data:
+  minio4-data:
