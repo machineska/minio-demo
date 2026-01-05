@@ -6,3 +6,4 @@ apps/django-app/.venv/
 *.log
 node_modules/
 .DS_Store
+.trae/
